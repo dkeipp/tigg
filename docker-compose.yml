@@ -1,0 +1,73 @@
+---
+version: "2.1"
+# Influxdb
+services:
+  influxdb:
+    image: influxdb:1.8-alpine
+    container_name: influxdb
+    ports:
+      - 8086:8086
+    volumes:
+      - influx:/var/lib/influxdb
+    restart:
+      unless-stopped
+# Chronograph
+  chronograph:
+    image: chronograf:1.8-alpine
+    container_name: chronograf
+    ports:
+      - 8888:8888
+    volumes:
+      - chronograf:/var/lib/chronograf
+    restart:
+      unless-stopped
+# snippet from docker-compose.yml
+  grafana:
+    image: grafana/grafana:7.5.7
+    container_name: grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana:/var/lib/grafana
+    restart:
+      unless-stopped
+# Graphite
+  graphite:
+    image: graphiteapp/graphite-statsd
+    container_name: graphite-statsd
+    ports:
+      - 81:80
+      - 2003-2004:2003-2004
+      - 2023-2024:2023-2024
+      - 8125:8125/udp
+      - 8126:8126
+    environment:
+      MEMCACHE_HOST: 127.0.0.1:11211
+      CACHE_DURATION: 60
+    volumes:
+      - graphite_conf:/opt/graphite/conf
+      - graphite_data:/opt/graphite/storage
+      - statsd:/opt/statsd/config
+      - graphite_custom:/opt/graphite/webapp/graphite/functions/custom
+      - graphite_nginx:/etc/nginx
+      - graphite_logrotate:/etc/logrotate.d
+      - graphite_log:/var/log
+      - graphite_redis:/var/lib/redis
+# Telegraf
+  telegraf:
+    image: telegraf
+    container_name: telegraf
+    volumes:
+      - /home/dennis/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+volumes:
+    grafana:
+    influx:
+    chronograf:
+    graphite_conf:
+    graphite_data:
+    statsd:
+    graphite_custom:
+    graphite_nginx:
+    graphite_logrotate:
+    graphite_log:
+    graphite_redis:
